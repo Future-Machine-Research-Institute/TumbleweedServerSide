@@ -9,6 +9,7 @@ var debug = require('debug')('tumbleweedserverside:server');
 var http = require('http');
 var https = require('https');
 var fs = require('fs');
+var path = require('path');
 
 /**
  * Get port from environment and store in Express.
@@ -23,10 +24,14 @@ var fs = require('fs');
  * Config SSL Cer.
  */
 
+ const keyPath = path.join(__dirname, './sslCer/server-key.pem');
+ const caPath = path.join(__dirname, './sslCer/ca-cert.pem');
+ const certPath = path.join(__dirname, './sslCer/server-cert.pem');
+
 const httpsOption = {
-  key: fs.readFileSync("./bin/sslCer/server-key.pem"),
-  ca: fs.readFileSync("./bin/sslCer/ca-cert.pem"),
-  cert: fs.readFileSync("./bin/sslCer/server-cert.pem")
+  key: fs.readFileSync(keyPath, 'utf8'),
+  ca: fs.readFileSync(caPath, 'utf8'),
+  cert: fs.readFileSync(certPath, 'utf8')
 }
 
 /**
