@@ -6,128 +6,227 @@ const DataBaseShareConfig = require("./db_config")
 class DataBase {
 
     #db
+    #dbConnected
 
     constructor() {
         this.#db = null
+        this.#dbConnected = false
     }
 
-    async #connect() {
-        return new Promise(async (resolve, reject)=> {
-            try {
+    async #connect(callback) {
+        if(this.#dbConnected === true) {
+            if(callback && typeof callback === "function") {
+                return callback(null, this.#db)
+            } else {
+                return new Promise(async (resolve, reject) => {
+                    return resolve(this.#db)
+                })
+            }
+        } else {
+            if(callback && typeof callback === "function") {
                 console.log(`begain to connecting: ${DataBaseShareConfig.dbConnectUrl}`)
-                const client = await MongoClient.connect(DataBaseShareConfig.dbConnectUrl)
-                this.#db = client.db(DataBaseShareConfig.dbConnectName)
-                console.log(`db: ${DataBaseShareConfig.dbConnectName} connected succeed`)
-                resolve(this.#db)
-            } catch (error) {
-                reject(error)
+                MongoClient.connect(DataBaseShareConfig.dbConnectUrl, (error, result) => {
+                    if(!error) {
+                        this.#db = result.db(DataBaseShareConfig.dbConnectName)
+                        this.#dbConnected = true
+                        console.log(`db: ${DataBaseShareConfig.dbConnectName} connected succeed`)
+                        return callback(error, this.#db)
+                    } else {
+                        this.#dbConnected = false
+                        return callback(error, null)
+                    }
+                })
+            } else {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        console.log(`begain to connecting: ${DataBaseShareConfig.dbConnectUrl}`)
+                        const client = await MongoClient.connect(DataBaseShareConfig.dbConnectUrl)
+                        this.#db = client.db(DataBaseShareConfig.dbConnectName)
+                        this.#dbConnected = true
+                        console.log(`db: ${DataBaseShareConfig.dbConnectName} connected succeed`)
+                        return resolve(this.#db)
+                    } catch (error) {
+                        this.#dbConnected = false
+                        return reject(error)
+                    }
+                })
             }
-        })
+        }
     }
 
-    async find(collectionName, findObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async find(collectionName, findObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).find(findObject).toArray((error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.find(findObject).toArray()
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.find(findObject).toArray()
+                    return resolve(result)
+                } catch (error) {
+                    return reject(error)
+                }
+            })
+        }
     }
 
-    async updateOne(collectionName, filterObject, newObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async updateOne(collectionName, filterObject, newObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).updateOne(filterObject, { $set: newObject }, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.updateOne(filterObject, { $set: newObject })
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.updateOne(filterObject, { $set: newObject })
+                    return resolve(result)
+                } catch (error) {
+                    return reject(error)
+                }
+            })
+        }  
     }
 
-    async updateMany(collectionName, filterObject, newObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async updateMany(collectionName, filterObject, newObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).updateMany(filterObject, { $set: newObject }, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.updateMany(filterObject, { $set: newObject })
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
-    }
-    
-    async insertOne(collectionName, insertObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.updateMany(filterObject, { $set: newObject })
+                    return resolve(result)
+                } catch (error) {
+                    return reject(error)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.insertOne(insertObject)
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        }
     }
 
-    async insertMany(collectionName, insertObjectArray) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async insertOne(collectionName, insertObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).insertOne(insertObject, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.insertMany(insertObjectArray)
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.insertOne(insertObject)
+                    resolve(result)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        }
     }
 
-    async deleteOne(collectionName, deleteObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async insertMany(collectionName, insertObjectArray, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).insertMany(insertObjectArray, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.deleteOne(deleteObject)
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.insertMany(insertObjectArray)
+                    resolve(result)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        }
     }
 
-    async deleteMany(collectionName, deleteObject) {
-        return new Promise(async (resolve, reject)=> {
-            try {
-                if(!this.#db) {
-                    await this.#connect()
+    async deleteOne(collectionName, deleteObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).deleteOne(deleteObject, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
                 }
-                const collection = this.#db.collection(collectionName)
-                const result = await collection.deleteMany(deleteObject)
-                resolve(result)
-            } catch (error) {
-                reject(error)
-            }
-        })
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.deleteOne(deleteObject)
+                    resolve(result)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        }
+    }
+
+    async deleteMany(collectionName, deleteObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).deleteMany(deleteObject, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
+                }
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.deleteMany(deleteObject)
+                    resolve(result)
+                } catch (error) {
+                    reject(error)
+                }
+            })
+        }
     }
 
 }
