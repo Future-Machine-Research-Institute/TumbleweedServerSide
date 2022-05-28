@@ -1,5 +1,5 @@
 
-const EDCryptionShareInstance = require("@future-machine-research-institute/jsbasetools")
+const EDCryptionShareInstance = require("./node_modules/@future-machine-research-institute/jsbasetools/edcryption")
 const saltRounds = 10
 const myPlaintextPassword = 's0/\/\P4$$w0rD'
 const someOtherPlaintextPassword = 'not_bacon'
