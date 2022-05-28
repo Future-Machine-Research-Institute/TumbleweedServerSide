@@ -8,14 +8,17 @@ DataBaseShareConfig.dbConnectName = "tumbleweed"
 
 /* GET users listing. */
 
-router.get('/users/register', async (req, res, next) => {
+router.post('/users/register', async (req, res, next) => {
 
-    try {
-        const result = await DataBaseShareInstance.insertOne("users", {"name" : "xj", "account" : "17826804444", "password" : "123456"})
-        res.send(JSON.stringify(result))
-      } catch (error) {
-        next(error)
-      }
+  const body = req.body
+  
+  res.send(JSON.stringify(body))
+    // try {
+    //     const result = await DataBaseShareInstance.insertOne("users", {"name": "xj", "account": "17826804444", "password": "123456", "avatar": "/aaa/ss/a.jpg"})
+    //     res.send(JSON.stringify(result))
+    //   } catch (error) {
+    //     next(error)
+    //   }
 
 })
 
