@@ -3,6 +3,8 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 
+const { successCode, failureCode, dataNotLegal, requestSucceeded } = require("./routes/routes_config")
+
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
 
@@ -47,7 +49,8 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   res.status(500).json({
-    error: err.message
+    ret: failureCode,
+    message: err.message
   })
 })
 

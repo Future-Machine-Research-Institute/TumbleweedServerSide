@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@future-machine-research-institute/jsbasetools": "github:Future-Machine-Research-Institute/JSBaseTools",
+    "canvas": "^2.9.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",

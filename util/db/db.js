@@ -16,7 +16,7 @@ class DataBase {
     async #connect(callback) {
         if(this.#dbConnected === true) {
             if(callback && typeof callback === "function") {
-                return callback(null, this.#db)
+                callback(null, this.#db)
             } else {
                 return new Promise(async (resolve, reject) => {
                     return resolve(this.#db)
@@ -30,10 +30,10 @@ class DataBase {
                         this.#db = result.db(DataBaseShareConfig.dbConnectName)
                         this.#dbConnected = true
                         console.log(`db: ${DataBaseShareConfig.dbConnectName} connected succeed`)
-                        return callback(error, this.#db)
+                        callback(error, this.#db)
                     } else {
                         this.#dbConnected = false
-                        return callback(error, null)
+                        callback(error, null)
                     }
                 })
             } else {
@@ -146,9 +146,9 @@ class DataBase {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
                     const result = await collection.insertOne(insertObject)
-                    resolve(result)
+                    return resolve(result)
                 } catch (error) {
-                    reject(error)
+                    return reject(error)
                 }
             })
         }
@@ -171,9 +171,9 @@ class DataBase {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
                     const result = await collection.insertMany(insertObjectArray)
-                    resolve(result)
+                    return resolve(result)
                 } catch (error) {
-                    reject(error)
+                    return reject(error)
                 }
             })
         }
@@ -196,9 +196,9 @@ class DataBase {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
                     const result = await collection.deleteOne(deleteObject)
-                    resolve(result)
+                    return resolve(result)
                 } catch (error) {
-                    reject(error)
+                    return reject(error)
                 }
             })
         }
@@ -221,9 +221,9 @@ class DataBase {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
                     const result = await collection.deleteMany(deleteObject)
-                    resolve(result)
+                    return resolve(result)
                 } catch (error) {
-                    reject(error)
+                    return reject(error)
                 }
             })
         }
