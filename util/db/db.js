@@ -79,6 +79,31 @@ class DataBase {
         }
     }
 
+    async findOne(collectionName, findObject, callback) {
+        if(callback && typeof callback === "function") {
+            this.#connect((error, resultDB) => {
+                if(!error) {
+                    resultDB.collection(collectionName).findOne(findObject, (error, result) => {
+                        callback(error, result)
+                    })
+                } else {
+                    callback(error, null)
+                }
+            })
+        } else {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await this.#connect()
+                    const collection = db.collection(collectionName)
+                    const result = await collection.findOne(findObject)
+                    return resolve(result)
+                } catch (error) {
+                    return reject(error)
+                }
+            })
+        }
+    }
+
     async updateOne(collectionName, filterObject, newObject, callback) {
         if(callback && typeof callback === "function") {
             this.#connect((error, resultDB) => {

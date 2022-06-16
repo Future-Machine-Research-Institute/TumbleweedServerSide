@@ -1,11 +1,11 @@
 
 // const EDCryptionShareInstance = require("./node_modules/@future-machine-research-institute/jsbasetools/edcryption")
 // const saltRounds = 10
-// const myPlaintextPassword = 's0/\/\P4$$w0rD'
+// const myPlaintextPassword = 'dzxzSR6DE0BVTt_wDx_aH'
 // const someOtherPlaintextPassword = 'not_bacon'
 
 // let result = EDCryptionShareInstance.bcryptHashSync(myPlaintextPassword, saltRounds)
-// console.log(EDCryptionShareInstance.bcryptCompareSync(someOtherPlaintextPassword, result))
+// console.log(EDCryptionShareInstance.bcryptCompareSync(myPlaintextPassword, "$2a$10$pFM.o/CiE8s7EWowjjyscO.dKKe0EwfuxrBSwa6gyO2Nr/rT6nySi"))
 
 // const CheckShareInstance = require("./util/check/check.js")
 
@@ -44,3 +44,16 @@
 // const FileMangerInstance = require("./util/file/file.js")
 // FileMangerInstance.writeStreamBufferAsync(__dirname + "/resource/avatar/test.png", drawAvatar(40, 40, "徐"))
 
+// const DataBaseShareConfig = require("./util/db/db_config")
+// const DataBaseShareInstance = require("./util/db/db")
+
+// DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
+// DataBaseShareConfig.dbConnectName = "tumbleweed"
+
+// DataBaseShareInstance.findOne("users", {"account": "17826805865"}, (error, result) => {
+//     if(error) {
+//         console.log(error)
+//     } else {
+//         console.log(result)
+//     }
+// })
