@@ -27,6 +27,8 @@ app.use(cookieParser())
 //   }
 // });
 
+app.use('/avatar', express.static(path.join(__dirname, './resource/avatar')));
+
 app.use((req, res, next) => {
   if (req.secure) {
     // request was via https, so do no special handling
