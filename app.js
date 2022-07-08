@@ -7,6 +7,7 @@ const { successCode, failureCode, dataNotLegal, requestSucceeded } = require("./
 
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
+const packageRouter = require('./routes/package')
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.use(cookieParser())
 // });
 
 app.use('/avatar', express.static(path.join(__dirname, './resource/avatar')));
+app.use('/app', express.static(path.join(__dirname, './resource/app')));
 
 app.use((req, res, next) => {
   if (req.secure) {
@@ -44,6 +46,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(indexRouter)
 app.use(usersRouter)
+app.use(packageRouter)
 
 app.use((req, res, next) => {
   res.status(404).send('404 Not Found')
