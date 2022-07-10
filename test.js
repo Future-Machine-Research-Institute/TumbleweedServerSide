@@ -57,3 +57,10 @@
 //         console.log(result)
 //     }
 // })
+
+// async function test() {
+//     const { nanoid } = await import('nanoid/async')
+//     const appId = await nanoid()
+//     console.log(appId)
+// }
+// test()

@@ -72,10 +72,10 @@ router.post('/users/login', async (req, res, next) => {
           const { nanoid } = await import('nanoid/async')
           const sourceToken = await nanoid()
           const encryptionToken = await EDCryptionShareInstance.bcryptHashAsync(sourceToken, 10)
-          const result = await DataBaseShareInstance.updateOne("users", {"account" : account}, {"token" : sourceToken})
+          const result = await DataBaseShareInstance.updateOne("users", {"account" : account}, {"token" : encryptionToken})
           res.send({
             ret: successCode,
-            token: encryptionToken,
+            token: sourceToken,
             message: result
           })
         } else {

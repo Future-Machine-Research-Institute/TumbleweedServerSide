@@ -36,6 +36,40 @@ class FileManger  {
         })
     }
 
+    async mkdirAsync(newPath) {
+        return new Promise(async (resolve, reject) => {
+            console.log("newPath: ", newPath)
+            if (!fs.existsSync(newPath)) {
+                fs.mkdir(newPath, (err) => {
+                    if(err) {
+                        console.log("mkdir failed: ", err)
+                        return reject(err)
+                    } else {
+                        return resolve(newPath)
+                    }
+                })
+            } else {
+                return resolve(newPath)
+            }
+            
+        })
+    }
+
+    async renameAsync(oldFilePath, newFilePath) {
+        return new Promise(async (resolve, reject) => {
+
+            fs.rename(oldFilePath, newFilePath, (err) => {
+                if(err) {
+                    console.log("rename failed: ", err)
+                    return reject(false)
+                } else {
+                    return resolve(true)
+                }
+            })
+            
+        })
+    }
+
 }
 
 
