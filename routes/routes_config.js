@@ -16,6 +16,8 @@ const tokenNotLegal = "token不合法"
 const packageFormatNotLegal = "App包格式不合法"
 const requestSucceeded = "请求成功"
 
+const routeHost = "localhost"
+
 //token验证中间件
 
 
@@ -28,5 +30,6 @@ module.exports = {
     passwordIncorrect,
     tokenNotLegal,
     packageFormatNotLegal,
-    requestSucceeded
+    requestSucceeded,
+    routeHost
 }

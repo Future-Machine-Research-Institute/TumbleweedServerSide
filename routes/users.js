@@ -6,7 +6,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, requestSucceeded } = require("../routes/routes_config")
+const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, requestSucceeded, routeHost } = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const { drawAvatar } = require("../util/tools/tools")
 const FileMangerInstance = require("../util/file/file")
@@ -33,7 +33,9 @@ router.post('/users/register', async (req, res, next) => {
       } else {
         const avatarBuffer = drawAvatar(40, 40, shortName)
         const encryptionPassword = await EDCryptionShareInstance.bcryptHashAsync(password, 10)
-        const avatarPath = await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        // const avatarPath = await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        const avatarPath = `https://${routeHost}/avatar/${account}.png`
         const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})
         res.send({
           ret: successCode,

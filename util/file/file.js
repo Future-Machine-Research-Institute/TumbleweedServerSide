@@ -49,7 +49,7 @@ class FileManger  {
 
     async mkdirAsync(newPath) {
         return new Promise(async (resolve, reject) => {
-            console.log("newPath: ", newPath)
+            
             if (!fs.existsSync(newPath)) {
                 fs.mkdir(newPath, (err) => {
                     if(err) {
@@ -78,6 +78,51 @@ class FileManger  {
                 }
             })
             
+        })
+    }
+
+    async unlinkAsync(filePath) {
+        return new Promise(async (resolve, reject) => {
+
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if(err) {
+                        console.log("unlink failed: ", err)
+                        return reject(err)
+                    } else {
+                        return resolve(filePath)
+                    }
+                })
+            } else {
+                return resolve(filePath)
+            }
+            
+        })
+    }
+
+    async deleteDirectoryAsync(directoryPath) {
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                if(fs.existsSync(directoryPath)) {
+                    const files = fs.readdirSync(directoryPath)
+                    files.forEach((file) => {
+                        const curPath = directoryPath + "/" + file
+                        if(fs.statSync(curPath).isDirectory()) {
+                            deleteDirectoryAsync(curPath)
+                        } else {
+                            fs.unlinkSync(curPath)
+                        }
+                    })
+                    fs.rmdirSync(directoryPath)
+                    return resolve(directoryPath)
+                } else {
+                    return resolve(directoryPath)
+                }
+            } catch (error) {
+                return reject(error)
+            }
+
         })
     }
 
