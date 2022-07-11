@@ -7,6 +7,17 @@ class FileManger  {
         
     }
 
+    base64ImageToBuffer(base64String) {
+        const buffer = new Object()
+        const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+        // if (matches.length !== 3) {
+        //     return new Error('Invalid base64String');
+        // }
+        buffer.type = matches[1].match(/\/(.*?)$/)[1]
+        buffer.data = Buffer.from(matches[2], 'base64')
+        return buffer
+    }
+
     async writeStreamBufferAsync(path, buffer) {
         return new Promise(async (resolve, reject) => {
 
@@ -61,9 +72,9 @@ class FileManger  {
             fs.rename(oldFilePath, newFilePath, (err) => {
                 if(err) {
                     console.log("rename failed: ", err)
-                    return reject(false)
+                    return reject(err)
                 } else {
-                    return resolve(true)
+                    return resolve(newFilePath)
                 }
             })
             
