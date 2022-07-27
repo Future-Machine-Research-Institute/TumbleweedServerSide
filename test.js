@@ -64,3 +64,47 @@
 //     console.log(appId)
 // }
 // test()
+
+// const fs = require('fs')
+// const plist = require('plist')
+// const path = require('path')
+// const plistPath = path.resolve(__dirname, '.') + "/resource/app/test/manifest.plist"
+// console.log(path)
+// // var obj = plist.parse(fs.readFileSync(plistPath, 'utf8'))
+// // console.log(JSON.stringify(obj))
+
+// const ipaUrl = "https://192.168.1.3/app/test/testp.ipa"
+
+// const displayImageUrl = "https://192.168.1.3/app/test/testi.png"
+
+// const fullSizeImageUrl = "https://192.168.1.3/app/test/testi.png"
+
+// const plistJson = {
+//     "items":[{
+//         "assets":[
+//             {
+//                 "kind":"software-package",
+//                 "url":`${ipaUrl}`
+//             },
+//             {
+//                 "kind":"display-image",
+//                 "url":`${displayImageUrl}`
+//             },
+//             {
+//                 "kind":"full-size-image",
+//                 "url":`${fullSizeImageUrl}`
+//             }
+//         ],
+//         "metadata":{
+//             "bundle-identifier":"com.*.*.*",
+//             "bundle-version":"1.0.0",
+//             "kind":"software",
+//             "platform-identifier":"com.apple.platform.*",
+//             "title":"WebTestNoIcon"
+//         }
+//     }]
+// }
+
+// const plistContent = plist.build(plistJson)
+// const FileMangerInstance = require("./util/file/file.js")
+// FileMangerInstance.writeStreamBufferAsync(__dirname + "/resource/app/temp/manifest.plist", plistContent)

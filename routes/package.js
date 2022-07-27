@@ -15,6 +15,7 @@ const path = require('path')
 
 const multiparty = require('multiparty')
 const { version } = require('os')
+const plist = require('plist')
 // const formData = new multiparty.Form();
 // formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
 // // formData.maxFilesSize = 2 * 1024 * 1024;
@@ -44,7 +45,7 @@ router.post('/package/upload', async (req, res, next) => {
   const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
   formData.parse(req, async (err, fields, files) => {
     
-    console.log(err);
+    // console.log(err);
     // console.log(fields);
     // console.log(files);
 
@@ -84,15 +85,43 @@ router.post('/package/upload', async (req, res, next) => {
             const iconBuffer = FileMangerInstance.base64ImageToBuffer(appIcon)
             const iconPath = path.join(dirpath, `${appId}${"i"}.${iconBuffer.type}`)
             await FileMangerInstance.writeStreamBufferAsync(iconPath, iconBuffer.data)
-            if(packageType === "ipa") {
-              console.log("进行ios包特殊处理, 写入m.plist文件")
-            }
-  
-            //写入数据库
-            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/${appId}m.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
+
             const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.${iconBuffer.type}`
             const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
-
+            if(packageType === "ipa") {
+              console.log("进行ios包特殊处理, 写入m.plist文件")
+              const plistJson = {
+                "items":[{
+                    "assets":[
+                        {
+                            "kind":"software-package",
+                            "url":`${packageLink}`
+                        },
+                        {
+                            "kind":"display-image",
+                            "url":`${appIconLink}`
+                        },
+                        {
+                            "kind":"full-size-image",
+                            "url":`${appIconLink}`
+                        }
+                    ],
+                    "metadata":{
+                        "bundle-identifier":"com.*.*.*",
+                        "bundle-version":"1.0.0",
+                        "kind":"software",
+                        "platform-identifier":"com.apple.platform.iphoneos",
+                        "title":`${appName}`
+                    }
+                }]
+              }
+              const plistContent = plist.build(plistJson)
+              const plistPath = path.join(dirpath, "manifest.plist")
+              await FileMangerInstance.writeStreamBufferAsync(plistPath, plistContent)
+            }
+  
+            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
+            //写入数据库
             const result = await DataBaseShareInstance.insertOne("apps", {"appId": appId, "appName": appName, "version": version, "appIcon": appIconLink, "uploadTime": uploadTime, "lastModifiedTime": uploadTime, "downloadLink": downloadLink, "package": packageLink, "uploadAccount": account, "system": system, "progress": progress})
   
             res.send({

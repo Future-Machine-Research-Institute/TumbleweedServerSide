@@ -16,7 +16,8 @@ const tokenNotLegal = "token不合法"
 const packageFormatNotLegal = "App包格式不合法"
 const requestSucceeded = "请求成功"
 
-const routeHost = "localhost"
+// const routeHost = "localhost"
+const routeHost = "192.168.1.3"
 
 //token验证中间件
 

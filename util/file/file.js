@@ -24,21 +24,21 @@ class FileManger  {
             const writeStream = fs.createWriteStream(path)
 
             writeStream.on('error', (err) => {
-                console.log("发生异常：", err)
+                // console.log("发生异常：", err)
                 return reject(err)
             })
 
             writeStream.on('open', (fd) => {
-                console.log("文件已打开：", fd)
+                // console.log("文件已打开：", fd)
             })
 
             writeStream.on('finish', () => {
-                console.log("写入已完成..")
+                // console.log("写入已完成..")
                 return resolve(path)
             })
 
             writeStream.on('close', () => {
-                console.log("文件已关闭")
+                // console.log("文件已关闭")
             })
 
             writeStream.write(buffer)
