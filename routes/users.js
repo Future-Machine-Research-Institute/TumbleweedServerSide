@@ -99,6 +99,16 @@ router.post('/users/login', async (req, res, next) => {
 
 })
 
+router.post('/users/test', async (req, res, next) => {
+
+  res.send({
+    ret: successCode,
+    params: req.body,
+    message: requestSucceeded
+  })
+
+})
+
 // router.get('/', async (req, res, next) => {
 
 //   try {
