@@ -21,16 +21,21 @@ const plist = require('plist')
 // // formData.maxFilesSize = 2 * 1024 * 1024;
 // const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
 
+//Just use in package.js for special method
 const isTokenLegal = async (account, token) => {
   try {
     const user = await DataBaseShareInstance.findOne("users", {"account": account})
-    const dbToken = user.token
-    const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
-    if(user === null || !isLegal) {
-      console.log("token不合法")
+    if(user === null) {
       return false
     } else {
-      return true
+      const dbToken = user.token
+      const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
+      if (!isLegal) {
+        console.log("token不合法")
+        return false
+      } else {
+        return true
+      }
     }
   } catch (error) {
     return false
@@ -74,6 +79,14 @@ router.post('/package/upload', async (req, res, next) => {
       const packageType = package[0].originalFilename.match(/[^.]+$/)[0]
 
       try {
+
+        //增加账号校验
+        if(!CheckShareInstance.isPhoneNumber(account)) {
+          res.send({
+            ret: failureCode,
+            message: dataNotLegal
+          })
+        }
 
         //只做了最基本的校验
         if(((packageType === "ipa" && system === 0) || (packageType === "apk" && system === 1)) && (progress === 0 || progress === 1)) {

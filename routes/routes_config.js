@@ -19,7 +19,33 @@ const requestSucceeded = "请求成功"
 // const routeHost = "localhost"
 const routeHost = "192.168.1.3"
 
-//token验证中间件
+//token验证中间件，仅用于需要token验证的普通接口
+const checkTokenLegal = async (req, res, next) => {
+    const account = req.body.account
+    const token = req.body.token
+    try {
+        const user = await DataBaseShareInstance.findOne("users", { "account": account })
+        if(user === null) {
+            res.send({
+                ret: failureCode,
+                message: accountNotExists
+            })
+        } else {
+            const dbToken = user.token
+            const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
+            if (!isLegal) {
+                res.send({
+                    ret: failureCode,
+                    message: tokenNotLegal
+                })
+            } else {
+                next()
+            }
+        }
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 module.exports = {
@@ -32,5 +58,6 @@ module.exports = {
     tokenNotLegal,
     packageFormatNotLegal,
     requestSucceeded,
-    routeHost
+    routeHost,
+    checkTokenLegal
 }
