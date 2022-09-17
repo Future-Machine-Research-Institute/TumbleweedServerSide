@@ -1,5 +1,6 @@
 
 const fs = require('fs')
+const crypto = require('crypto')
 
 class FileManger  {
 
@@ -43,6 +44,36 @@ class FileManger  {
 
             writeStream.write(buffer)
             writeStream.end()
+            
+        })
+    }
+
+    async getFileMd5Async(path) {
+        return new Promise(async (resolve, reject) => {
+
+            const readStream = fs.createReadStream(path)
+            const hash = crypto.createHash('md5')
+
+            readStream.on('error', (err) => {
+                return reject(err)
+            })
+
+            readStream.on('open', (fd) => {
+                console.log("文件已打开：", fd)
+            })
+
+            readStream.on('data', (data) => {
+                hash.update(data)
+            })
+
+            readStream.on('close', () => {
+                console.log("文件已关闭")
+            })
+
+            readStream.on('end', () => {
+                const md5 = hash.digest('hex')
+                return resolve(md5)
+            })
             
         })
     }

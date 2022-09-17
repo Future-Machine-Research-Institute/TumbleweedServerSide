@@ -14,6 +14,7 @@ const accountNotExists = "账号不存在"
 const passwordIncorrect = "密码错误"
 const tokenNotLegal = "token不合法"
 const packageFormatNotLegal = "App包格式不合法"
+const packageFileVerificationFailed = "App包MD5校验失败"
 const requestSucceeded = "请求成功"
 
 // const routeHost = "localhost"
@@ -57,6 +58,7 @@ module.exports = {
     passwordIncorrect,
     tokenNotLegal,
     packageFormatNotLegal,
+    packageFileVerificationFailed,
     requestSucceeded,
     routeHost,
     checkTokenLegal
