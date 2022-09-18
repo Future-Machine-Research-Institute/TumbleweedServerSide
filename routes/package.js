@@ -18,6 +18,7 @@ const { version } = require('os')
 const plist = require('plist')
 
 const {uuidCreate} = require('../util/tools/tools')
+const { drawAvatar } = require("../util/tools/tools")
 // const formData = new multiparty.Form();
 // formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
 // // formData.maxFilesSize = 2 * 1024 * 1024;
@@ -72,16 +73,30 @@ router.post('/package/upload', async (req, res, next) => {
         // 上传完后处理
         const account = fields.account[0]
         const token = fields.token[0]
+        const appName = fields.appName[0]
         // appId 在服务端生成
         // const appId = fields.appId[0]
         const md5 = fields.md5[0]
-        const appIcon = fields.appIcon[0]
-        const appName = fields.appName[0]
+        let appIcon = ""
+        if(fields.appIcon[0] === "null") {
+          const appIconBuffer = drawAvatar(120, 120, appName.charAt(0))
+          appIcon = 'data:image/png;base64,' + appIconBuffer.toString('base64')
+        } else {
+          appIcon = fields.appIcon[0]
+        }
+        
         const version = fields.version[0]
         //时间戳格式
         const uploadTime = fields.uploadTime[0]
         const system = typeof (fields.system[0]) === "number" ? fields.system[0] : parseInt(fields.system[0])
         const progress = typeof (fields.progress[0]) === "number" ? fields.progress[0] : parseInt(fields.progress[0])
+        const description = fields.description[0]
+        const descriptionLogs = [
+          {
+            timeStamp: uploadTime,
+            description: description
+          }
+        ]
 
         // const package = files.package
         const packageType = package[0].originalFilename.match(/[^.]+$/)[0]
@@ -157,7 +172,7 @@ router.post('/package/upload', async (req, res, next) => {
   
             const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
             //写入数据库
-            const result = await DataBaseShareInstance.insertOne("apps", {"appId": appId, "appName": appName, "version": version, "appIcon": appIconLink, "uploadTime": uploadTime, "lastModifiedTime": uploadTime, "downloadLink": downloadLink, "package": packageLink, "uploadAccount": account, "system": system, "progress": progress})
+            const result = await DataBaseShareInstance.insertOne("apps", {"appId": appId, "appName": appName, "version": version, "appIcon": appIconLink, "uploadTime": uploadTime, "lastModifiedTime": uploadTime, "downloadLink": downloadLink, "package": packageLink, "uploadAccount": account, "system": system, "progress": progress, "descriptionLogs": descriptionLogs})
   
             res.send({
               ret: successCode,
