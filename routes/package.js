@@ -7,7 +7,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, requestSucceeded, routeHost} = require("../routes/routes_config")
+const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, requestSucceeded, routeHost, checkTokenLegal} = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const FileMangerInstance = require("../util/file/file")
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
@@ -172,7 +172,20 @@ router.post('/package/upload', async (req, res, next) => {
   
             const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
             //写入数据库
-            const result = await DataBaseShareInstance.insertOne("apps", {"appId": appId, "appName": appName, "version": version, "appIcon": appIconLink, "uploadTime": uploadTime, "lastModifiedTime": uploadTime, "downloadLink": downloadLink, "package": packageLink, "uploadAccount": account, "system": system, "progress": progress, "descriptionLogs": descriptionLogs})
+            const result = await DataBaseShareInstance.insertOne("apps", {
+              "appId": appId, 
+              "appName": appName, 
+              "version": version, 
+              "appIcon": appIconLink, 
+              "uploadTime": uploadTime, 
+              "lastModifiedTime": uploadTime, 
+              "downloadLink": downloadLink, 
+              "package": packageLink, 
+              "uploadAccount": account, 
+              "system": system, 
+              "progress": progress, 
+              "descriptionLogs": descriptionLogs
+            })
   
             res.send({
               ret: successCode,
@@ -210,6 +223,35 @@ router.post('/package/upload', async (req, res, next) => {
     
   })
     
+})
+
+router.post('/package/update', async (req, res, next) => {
+
+})
+
+router.post('/package/delete', async (req, res, next) => {
+  
+})
+
+router.post('/package/obtain', checkTokenLegal, async (req, res, next) => {
+  try {
+    const requiredCount = req.body.requiredCount
+    const obtainedCount = req.body.obtainedCount
+    const result = await DataBaseShareInstance.findSkipAndLimit("apps", {}, obtainedCount, requiredCount)
+    const finished = result.length < requiredCount ? true : false
+    res.send({
+      ret: successCode,
+      message: requestSucceeded,
+      items: result,
+      finished: finished
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/package/search', async (req, res, next) => {
+
 })
 
 module.exports = router
