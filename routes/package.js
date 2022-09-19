@@ -180,7 +180,7 @@ router.post('/package/upload', async (req, res, next) => {
               "uploadTime": uploadTime, 
               "lastModifiedTime": uploadTime, 
               "downloadLink": downloadLink, 
-              "package": packageLink, 
+              "packageLink": packageLink, 
               "uploadAccount": account, 
               "system": system, 
               "progress": progress, 
@@ -237,7 +237,8 @@ router.post('/package/obtain', checkTokenLegal, async (req, res, next) => {
   try {
     const requiredCount = req.body.requiredCount
     const obtainedCount = req.body.obtainedCount
-    const result = await DataBaseShareInstance.findSkipAndLimit("apps", {}, obtainedCount, requiredCount)
+    const queryConditions = req.body.queryConditions
+    const result = await DataBaseShareInstance.findSkipAndLimit("apps", queryConditions, {_id: 0, lastModifiedTime: 0, downloadLink: 0, packageLink: 0, descriptionLogs: 0}, obtainedCount, requiredCount)
     const finished = result.length < requiredCount ? true : false
     res.send({
       ret: successCode,
@@ -248,10 +249,6 @@ router.post('/package/obtain', checkTokenLegal, async (req, res, next) => {
   } catch (error) {
     next(error)
   }
-})
-
-router.post('/package/search', async (req, res, next) => {
-
 })
 
 module.exports = router

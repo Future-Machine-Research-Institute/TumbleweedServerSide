@@ -104,11 +104,11 @@ class DataBase {
         }
     }
 
-    async findSkipAndLimit(collectionName, findObject, skipCount, limitCount, callback) {
+    async findSkipAndLimit(collectionName, findObject, filterObject, skipCount, limitCount, callback) {
         if(callback && typeof callback === "function") {
             this.#connect((error, resultDB) => {
                 if(!error) {
-                    resultDB.collection(collectionName).find(findObject).skip(skipCount).limit(limitCount).toArray((error, result) => {
+                    resultDB.collection(collectionName).find(findObject).project(filterObject).skip(skipCount).limit(limitCount).toArray((error, result) => {
                         callback(error, result)
                     })
                 } else {
@@ -120,7 +120,7 @@ class DataBase {
                 try {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
-                    const result = await collection.find(findObject).skip(skipCount).limit(limitCount).toArray()
+                    const result = await collection.find(findObject).project(filterObject).skip(skipCount).limit(limitCount).toArray()
                     return resolve(result)
                 } catch (error) {
                     return reject(error)
