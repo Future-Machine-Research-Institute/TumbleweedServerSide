@@ -24,6 +24,8 @@ const { drawAvatar } = require("../util/tools/tools")
 // // formData.maxFilesSize = 2 * 1024 * 1024;
 // const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
 
+const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
+
 //Just use in package.js for special method
 const isTokenLegal = async (account, token) => {
   try {
@@ -50,7 +52,6 @@ router.post('/package/upload', async (req, res, next) => {
   //formData必须每次新建
   const formData = new multiparty.Form();
   formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
-  const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
   formData.parse(req, async (err, fields, files) => {
     
     // console.log(err);
@@ -58,7 +59,7 @@ router.post('/package/upload', async (req, res, next) => {
     // console.log(files);
 
     if(err) {
-      next(error)
+      next(err)
     } else {
 
       //数据校验,暂时只做token验证, 其他数据暂时不做校验 IOS = 0 正式版 = 0
@@ -229,8 +230,20 @@ router.post('/package/update', async (req, res, next) => {
 
 })
 
-router.post('/package/delete', async (req, res, next) => {
-  
+router.post('/package/delete', checkTokenLegal, async (req, res, next) => {
+  try {
+    const appIdArray = req.body.appIdArray
+    const result = await DataBaseShareInstance.deleteMany("apps", {$or:appIdArray})
+    for(const object of appIdArray) {
+      await FileMangerInstance.deleteDirectoryAsync(path.join(originPath, object.appId))
+    }
+    res.send({
+      ret: successCode,
+      message: result,
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
 router.post('/package/obtain', checkTokenLegal, async (req, res, next) => {

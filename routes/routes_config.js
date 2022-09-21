@@ -15,6 +15,7 @@ const passwordIncorrect = "密码错误"
 const tokenNotLegal = "token不合法"
 const packageFormatNotLegal = "App包格式不合法"
 const packageFileVerificationFailed = "App包MD5校验失败"
+const userNotHavePermission = "用户没有权限"
 const requestSucceeded = "请求成功"
 
 // const routeHost = "localhost"
@@ -48,6 +49,54 @@ const checkTokenLegal = async (req, res, next) => {
     }
 }
 
+// top-admin: permission === 0 | sub-admin === 1 | ordinary === 2
+const CheckTopPermissionLegal = async (req, res, next) => {
+    const account = req.body.account
+    try {
+        const user = await DataBaseShareInstance.findOne("users", { "account": account })
+        if(user === null) {
+            res.send({
+                ret: failureCode,
+                message: accountNotExists
+            })
+        } else {
+            if (user.permission !== 0) {
+                res.send({
+                    ret: failureCode,
+                    message: userNotHavePermission
+                })
+            } else {
+                next()
+            }
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+const CheckSubPermissionLegal = async (req, res, next) => {
+    const account = req.body.account
+    try {
+        const user = await DataBaseShareInstance.findOne("users", { "account": account })
+        if(user === null) {
+            res.send({
+                ret: failureCode,
+                message: accountNotExists
+            })
+        } else {
+            if (user.permission !== 0 || user.permission !== 1) {
+                res.send({
+                    ret: failureCode,
+                    message: userNotHavePermission
+                })
+            } else {
+                next()
+            }
+        }
+    } catch (error) {
+        next(error)
+    }
+}
 
 module.exports = {
     successCode,
@@ -61,5 +110,7 @@ module.exports = {
     packageFileVerificationFailed,
     requestSucceeded,
     routeHost,
-    checkTokenLegal
+    checkTokenLegal,
+    CheckTopPermissionLegal,
+    CheckSubPermissionLegal
 }
