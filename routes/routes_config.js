@@ -16,6 +16,7 @@ const tokenNotLegal = "token不合法"
 const packageFormatNotLegal = "App包格式不合法"
 const packageFileVerificationFailed = "App包MD5校验失败"
 const userNotHavePermission = "用户没有权限"
+const updatePackageNotExist = "更新的App包不存在"
 const requestSucceeded = "请求成功"
 
 // const routeHost = "localhost"
@@ -108,6 +109,7 @@ module.exports = {
     tokenNotLegal,
     packageFormatNotLegal,
     packageFileVerificationFailed,
+    updatePackageNotExist,
     requestSucceeded,
     routeHost,
     checkTokenLegal,

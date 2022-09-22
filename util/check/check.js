@@ -10,6 +10,10 @@ class Check {
         return reg.test(str)
     }
 
+    isAppId(str) {
+        return str.length === 16 ? true : false
+    }
+
     //8-20位不含特殊字符和空格
     isPassword(str) {
         if((str.length > 7 && str.length < 21) && !/[@#!*$^%&]/.test(str) && !/[/\s+/g]/.test(str)) {

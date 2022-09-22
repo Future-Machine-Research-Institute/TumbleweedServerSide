@@ -7,11 +7,12 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, requestSucceeded, routeHost, checkTokenLegal} = require("../routes/routes_config")
+const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, requestSucceeded, routeHost, checkTokenLegal} = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const FileMangerInstance = require("../util/file/file")
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
 const path = require('path')
+const fs = require('fs')
 
 const multiparty = require('multiparty')
 const { version } = require('os')
@@ -80,7 +81,7 @@ router.post('/package/upload', async (req, res, next) => {
         const md5 = fields.md5[0]
         let appIcon = ""
         if(fields.appIcon[0] === "null") {
-          const appIconBuffer = drawAvatar(120, 120, appName.charAt(0))
+          const appIconBuffer = drawAvatar(60, 60, appName.charAt(0))
           appIcon = 'data:image/png;base64,' + appIconBuffer.toString('base64')
         } else {
           appIcon = fields.appIcon[0]
@@ -226,7 +227,174 @@ router.post('/package/upload', async (req, res, next) => {
     
 })
 
+//先更新文件再更新数据库
 router.post('/package/update', async (req, res, next) => {
+
+  //formData必须每次新建
+  const formData = new multiparty.Form();
+  formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
+  formData.parse(req, async (err, fields, files) => {
+
+    if(err) {
+      next(err)
+    } else {
+
+      const appId = fields.appId[0]
+      const package = files.package
+
+      try {
+
+        // 上传完后处理
+        const account = fields.account[0]
+        const token = fields.token[0]
+        const appName = fields.appName[0]
+        const md5 = fields.md5[0]
+        let appIcon = ""
+        if(fields.appIcon[0] === "null") {
+          const appIconBuffer = drawAvatar(60, 60, appName.charAt(0))
+          appIcon = 'data:image/png;base64,' + appIconBuffer.toString('base64')
+        } else {
+          appIcon = fields.appIcon[0]
+        }
+        
+        const version = fields.version[0]
+        //时间戳格式
+        const lastModifiedTime = fields.lastModifiedTime[0]
+        const system = typeof (fields.system[0]) === "number" ? fields.system[0] : parseInt(fields.system[0])
+        const progress = typeof (fields.progress[0]) === "number" ? fields.progress[0] : parseInt(fields.progress[0])
+        const description = fields.description[0]
+
+        // const package = files.package
+        const packageType = package[0].originalFilename.match(/[^.]+$/)[0]
+      
+        
+        //文件md5验证
+        if(md5 !== (await FileMangerInstance.getFileMd5Async(package[0].path))) {
+          console.log("清除app包")
+          await FileMangerInstance.unlinkAsync(package[0].path)
+          res.send({
+            ret: failureCode,
+            message: packageFileVerificationFailed
+          })
+        }
+
+        //增加账号校验
+        if(!CheckShareInstance.isPhoneNumber(account) || !CheckShareInstance.isAppId(appId)) {
+          console.log("清除app包")
+          await FileMangerInstance.unlinkAsync(package[0].path)
+          res.send({
+            ret: failureCode,
+            message: dataNotLegal
+          })
+        }
+
+        if(((packageType === "ipa" && system === 0) || (packageType === "apk" && system === 1)) && (progress === 0 || progress === 1)) {
+
+          if(await isTokenLegal(account, token)) {
+            const app = await DataBaseShareInstance.findOne("apps", { "appId": appId })
+            const oldDirpath = path.join(originPath, appId)
+            const packagePath = path.join(oldDirpath, `${appId}p.${packageType}`)
+            const iconPath = path.join(oldDirpath, `${appId}i.png`)
+            const manifestPath = path.join(oldDirpath, "manifest.plist")
+            const appFileExist = system === 0 ? (fs.existsSync(packagePath) && fs.existsSync(iconPath) && fs.existsSync(manifestPath)) : (fs.existsSync(packagePath) && fs.existsSync(iconPath))
+            if((app === null) || (app.system !== system) || !appFileExist) {
+              console.log("清除app包")
+              await FileMangerInstance.unlinkAsync(package[0].path)
+              res.send({
+                ret: failureCode,
+                message: updatePackageNotExist
+              })
+            } else {
+              const tempPackagePath = package[0].path
+              await FileMangerInstance.renameAsync(tempPackagePath, packagePath)
+              const iconBuffer = FileMangerInstance.base64ImageToBuffer(appIcon)
+              await FileMangerInstance.writeStreamBufferAsync(iconPath, iconBuffer.data)
+
+              const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.png`
+              const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
+              if (packageType === "ipa") {
+                console.log("进行ios包特殊处理, 写入m.plist文件")
+                const plistJson = {
+                  "items": [{
+                    "assets": [
+                      {
+                        "kind": "software-package",
+                        "url": `${packageLink}`
+                      },
+                      {
+                        "kind": "display-image",
+                        "url": `${appIconLink}`
+                      },
+                      {
+                        "kind": "full-size-image",
+                        "url": `${appIconLink}`
+                      }
+                    ],
+                    "metadata": {
+                      "bundle-identifier": "com.*.*.*",
+                      "bundle-version": "1.0.0",
+                      "kind": "software",
+                      "platform-identifier": "com.apple.platform.iphoneos",
+                      "title": `${appName}`
+                    }
+                  }]
+                }
+                const plistContent = plist.build(plistJson)
+                await FileMangerInstance.writeStreamBufferAsync(manifestPath, plistContent)
+              }
+
+              let descriptionLogs = app.descriptionLogs
+              descriptionLogs.push({
+                timeStamp: lastModifiedTime,
+                description: description
+              })
+
+              //更新数据库
+              const result = await DataBaseShareInstance.updateOne("apps", {"appId": appId}, {
+                "appName": appName,
+                "version": version,
+                "lastModifiedTime": lastModifiedTime,
+                "uploadAccount": account,
+                "progress": progress,
+                "descriptionLogs": descriptionLogs
+              })
+
+              res.send({
+                ret: successCode,
+                message: result
+              })
+
+            }
+          } else {
+            console.log("清除app包")
+            await FileMangerInstance.unlinkAsync(package[0].path)
+            res.send({
+              ret: failureCode,
+              message: tokenNotLegal
+            })
+          }
+
+        } else {
+          console.log("清除app包")
+          await FileMangerInstance.unlinkAsync(package[0].path)
+          res.send({
+            ret: failureCode,
+            message: packageFormatNotLegal
+          })
+        }
+      
+      } catch (error) {
+        console.log("清除app包")
+        await FileMangerInstance.unlinkAsync(package[0].path)
+        //在移动app包到新文件夹（新创建的文件夹）之后可能会捕获到错误
+        if(appId !== null) {
+          await FileMangerInstance.deleteDirectoryAsync(path.join(originPath, appId))
+        }
+        next(error)
+      }
+    }
+
+  })
 
 })
 
