@@ -138,8 +138,10 @@ router.post('/package/upload', async (req, res, next) => {
             const iconPath = path.join(dirpath, `${appId}${"i"}.${iconBuffer.type}`)
             await FileMangerInstance.writeStreamBufferAsync(iconPath, iconBuffer.data)
 
-            const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.${iconBuffer.type}`
-            const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
+            const staticResourceSuffix = '?timestamp=' + new Date().getTime()
+
+            const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.${iconBuffer.type}${staticResourceSuffix}`
+            const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}${staticResourceSuffix}`
             if(packageType === "ipa") {
               console.log("进行ios包特殊处理, 写入m.plist文件")
               const plistJson = {
@@ -172,7 +174,7 @@ router.post('/package/upload', async (req, res, next) => {
               await FileMangerInstance.writeStreamBufferAsync(plistPath, plistContent)
             }
   
-            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
+            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist${staticResourceSuffix}` : `https://${routeHost}/app/${appId}/${appId}p.apk${staticResourceSuffix}`
             //写入数据库
             const result = await DataBaseShareInstance.insertOne("apps", {
               "appId": appId, 
@@ -310,8 +312,10 @@ router.post('/package/update', async (req, res, next) => {
               const iconBuffer = FileMangerInstance.base64ImageToBuffer(appIcon)
               await FileMangerInstance.writeStreamBufferAsync(iconPath, iconBuffer.data)
 
-              const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.png`
-              const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
+              const staticResourceSuffix = '?timestamp=' + new Date().getTime()
+
+              const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.png${staticResourceSuffix}`
+              const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}${staticResourceSuffix}`
               if (packageType === "ipa") {
                 console.log("进行ios包特殊处理, 写入m.plist文件")
                 const plistJson = {
@@ -343,6 +347,8 @@ router.post('/package/update', async (req, res, next) => {
                 await FileMangerInstance.writeStreamBufferAsync(manifestPath, plistContent)
               }
 
+              const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist${staticResourceSuffix}` : `https://${routeHost}/app/${appId}/${appId}p.apk${staticResourceSuffix}`
+
               let descriptionLogs = app.descriptionLogs
               descriptionLogs.push({
                 timeStamp: lastModifiedTime,
@@ -353,7 +359,10 @@ router.post('/package/update', async (req, res, next) => {
               const result = await DataBaseShareInstance.updateOne("apps", {"appId": appId}, {
                 "appName": appName,
                 "version": version,
+                "appIcon": appIconLink, 
                 "lastModifiedTime": lastModifiedTime,
+                "downloadLink": downloadLink, 
+                "packageLink": packageLink, 
                 "uploadAccount": account,
                 "progress": progress,
                 "descriptionLogs": descriptionLogs
@@ -385,11 +394,12 @@ router.post('/package/update', async (req, res, next) => {
       
       } catch (error) {
         console.log("清除app包")
+        console.log(error)
         await FileMangerInstance.unlinkAsync(package[0].path)
         //在移动app包到新文件夹（新创建的文件夹）之后可能会捕获到错误
-        if(appId !== null) {
-          await FileMangerInstance.deleteDirectoryAsync(path.join(originPath, appId))
-        }
+        // if(appId !== null) {
+        //   await FileMangerInstance.deleteDirectoryAsync(path.join(originPath, appId))
+        // }
         next(error)
       }
     }
