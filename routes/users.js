@@ -129,6 +129,46 @@ router.post('/users/login', async (req, res, next) => {
 
 })
 
+router.post('/users/list', checkTokenLegal, async (req, res, next) => {
+  try {
+    const queryConditions = req.body.queryConditions
+    const result = await DataBaseShareInstance.find("users", queryConditions, {_id: 0, password: 0, token: 0})
+    res.send({
+      ret: successCode,
+      message: result
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/users/delete', checkTokenLegal, async (req, res, next) => {
+  try {
+    const accountArray = req.body.accountArray
+    const result = await DataBaseShareInstance.deleteMany("users", {$or:accountArray})
+    res.send({
+      ret: successCode,
+      message: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/users/updatePermission', checkTokenLegal, async (req, res, next) => {
+  try {
+    const account = req.body.account
+    const permission = req.body.permission
+    const result = await DataBaseShareInstance.updateOne("apps", {"account": account}, {"permission": permission})
+    res.send({
+      ret: successCode,
+      message: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 //测试用
 router.post('/users/test', checkTokenLegal, async (req, res, next) => {
   try {

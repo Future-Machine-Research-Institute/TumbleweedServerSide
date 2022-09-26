@@ -54,11 +54,11 @@ class DataBase {
         }
     }
 
-    async find(collectionName, findObject, callback) {
+    async find(collectionName, findObject, filterObject, callback) {
         if(callback && typeof callback === "function") {
             this.#connect((error, resultDB) => {
                 if(!error) {
-                    resultDB.collection(collectionName).find(findObject).toArray((error, result) => {
+                    resultDB.collection(collectionName).find(findObject).project(filterObject).toArray((error, result) => {
                         callback(error, result)
                     })
                 } else {
@@ -70,7 +70,7 @@ class DataBase {
                 try {
                     const db = await this.#connect()
                     const collection = db.collection(collectionName)
-                    const result = await collection.find(findObject).toArray()
+                    const result = await collection.find(findObject).project(filterObject).toArray()
                     return resolve(result)
                 } catch (error) {
                     return reject(error)

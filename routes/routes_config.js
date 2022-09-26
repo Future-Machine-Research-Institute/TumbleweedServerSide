@@ -24,9 +24,9 @@ const routeHost = "192.168.1.3"
 
 //token验证中间件，仅用于需要token验证的普通接口
 const checkTokenLegal = async (req, res, next) => {
-    const account = req.body.account
-    const token = req.body.token
     try {
+        const account = req.body.account
+        const token = req.body.token
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
@@ -52,8 +52,8 @@ const checkTokenLegal = async (req, res, next) => {
 
 // top-admin: permission === 0 | sub-admin === 1 | ordinary === 2
 const CheckTopPermissionLegal = async (req, res, next) => {
-    const account = req.body.account
     try {
+        const account = req.body.account
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
@@ -76,8 +76,8 @@ const CheckTopPermissionLegal = async (req, res, next) => {
 }
 
 const CheckSubPermissionLegal = async (req, res, next) => {
-    const account = req.body.account
     try {
+        const account = req.body.account
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
