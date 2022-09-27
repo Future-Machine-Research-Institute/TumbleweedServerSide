@@ -135,11 +135,51 @@ router.post('/users/list', checkTokenLegal, async (req, res, next) => {
     const result = await DataBaseShareInstance.find("users", queryConditions, {_id: 0, password: 0, token: 0})
     res.send({
       ret: successCode,
-      message: result
+      list: result,
+      message: requestSucceeded
     })
   } catch (error) {
     next(error)
   }
+})
+
+router.post('/users/add', checkTokenLegal, async (req, res, next) => {
+
+  try {
+    const name = req.body.newName
+    const shortName = name.charAt(0)
+    const account = req.body.newAccount
+    const password = req.body.newPassword
+    const permission = req.body.permission
+    if(CheckShareInstance.isUserName(name) && CheckShareInstance.isPhoneNumber(account)) {
+      const user = await DataBaseShareInstance.findOne("users", {"account": account})
+      if(user !== null) {
+        res.send({
+          ret: failureCode,
+          message: accountAlreadyExists
+        })
+      } else {
+        const avatarBuffer = drawAvatar(40, 40, shortName)
+        const encryptionPassword = await EDCryptionShareInstance.bcryptHashAsync(password, 10)
+        // const avatarPath = await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        const avatarPath = `https://${routeHost}/avatar/${account}.png`
+        const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})
+        res.send({
+          ret: successCode,
+          message: result
+        })
+      }
+    } else {
+      res.send({
+        ret: failureCode,
+        message: dataNotLegal
+      })
+    }
+  } catch (error) {
+    next(error)
+  }
+  
 })
 
 router.post('/users/delete', checkTokenLegal, async (req, res, next) => {
@@ -157,9 +197,9 @@ router.post('/users/delete', checkTokenLegal, async (req, res, next) => {
 
 router.post('/users/updatePermission', checkTokenLegal, async (req, res, next) => {
   try {
-    const account = req.body.account
-    const permission = req.body.permission
-    const result = await DataBaseShareInstance.updateOne("apps", {"account": account}, {"permission": permission})
+    const account = req.body.updateAccount
+    const permission = req.body.updatePermission
+    const result = await DataBaseShareInstance.updateOne("users", {"account": account}, {"permission": permission})
     res.send({
       ret: successCode,
       message: result,
