@@ -209,6 +209,20 @@ router.post('/users/updatePermission', checkTokenLegal, async (req, res, next) =
   }
 })
 
+router.post('/users/information', checkTokenLegal, async (req, res, next) => {
+  try {
+    const account = req.body.account
+    const result = await DataBaseShareInstance.find("users", {"account": account}, {_id: 0, password: 0, token: 0})
+    res.send({
+      ret: successCode,
+      information: result[0],
+      message: requestSucceeded
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 //测试用
 router.post('/users/test', checkTokenLegal, async (req, res, next) => {
   try {
