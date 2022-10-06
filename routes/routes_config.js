@@ -8,6 +8,8 @@ const EDCryptionShareInstance = require("../node_modules/@future-machine-researc
 
 const successCode = 0
 const failureCode = 1
+const tokenNotLegalCode = 100003
+const userNotHavePermissionCode = 100004
 const dataNotLegal = "数据不合法"
 const accountAlreadyExists = "账号已存在"
 const accountNotExists = "账号不存在"
@@ -30,7 +32,7 @@ const checkTokenLegal = async (req, res, next) => {
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
-                ret: failureCode,
+                ret: tokenNotLegalCode,
                 message: accountNotExists
             })
         } else {
@@ -38,7 +40,7 @@ const checkTokenLegal = async (req, res, next) => {
             const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
             if (!isLegal) {
                 res.send({
-                    ret: failureCode,
+                    ret: tokenNotLegalCode,
                     message: tokenNotLegal
                 })
             } else {
@@ -57,13 +59,13 @@ const CheckTopPermissionLegal = async (req, res, next) => {
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
-                ret: failureCode,
+                ret: userNotHavePermissionCode,
                 message: accountNotExists
             })
         } else {
             if (user.permission !== 0) {
                 res.send({
-                    ret: failureCode,
+                    ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
             } else {
@@ -81,13 +83,13 @@ const CheckSubPermissionLegal = async (req, res, next) => {
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
             res.send({
-                ret: failureCode,
+                ret: userNotHavePermissionCode,
                 message: accountNotExists
             })
         } else {
             if (user.permission !== 0 || user.permission !== 1) {
                 res.send({
-                    ret: failureCode,
+                    ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
             } else {
@@ -102,6 +104,8 @@ const CheckSubPermissionLegal = async (req, res, next) => {
 module.exports = {
     successCode,
     failureCode,
+    tokenNotLegalCode,
+    userNotHavePermissionCode,
     dataNotLegal,
     accountAlreadyExists,
     accountNotExists,

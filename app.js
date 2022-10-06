@@ -7,6 +7,7 @@ const { successCode, failureCode, dataNotLegal, requestSucceeded } = require("./
 
 const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
+const homeRouter = require('./routes/home')
 const packageRouter = require('./routes/package')
 
 const app = express()
@@ -60,6 +61,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(indexRouter)
 app.use(usersRouter)
+app.use(homeRouter)
 app.use(packageRouter)
 
 app.use((req, res, next) => {

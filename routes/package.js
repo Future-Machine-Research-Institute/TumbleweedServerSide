@@ -7,7 +7,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, requestSucceeded, routeHost, checkTokenLegal} = require("../routes/routes_config")
+const { successCode, failureCode, tokenNotLegalCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, requestSucceeded, routeHost, checkTokenLegal, CheckSubPermissionLegal} = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const FileMangerInstance = require("../util/file/file")
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
@@ -200,7 +200,7 @@ router.post('/package/upload', async (req, res, next) => {
             console.log("清除app包")
             await FileMangerInstance.unlinkAsync(package[0].path)
             res.send({
-              ret: failureCode,
+              ret: tokenNotLegalCode,
               message: tokenNotLegal
             })
           }
@@ -378,7 +378,7 @@ router.post('/package/update', async (req, res, next) => {
             console.log("清除app包")
             await FileMangerInstance.unlinkAsync(package[0].path)
             res.send({
-              ret: failureCode,
+              ret: tokenNotLegalCode,
               message: tokenNotLegal
             })
           }
@@ -408,7 +408,7 @@ router.post('/package/update', async (req, res, next) => {
 
 })
 
-router.post('/package/delete', checkTokenLegal, async (req, res, next) => {
+router.post('/package/delete', checkTokenLegal, CheckSubPermissionLegal, async (req, res, next) => {
   try {
     const appIdArray = req.body.appIdArray
     const result = await DataBaseShareInstance.deleteMany("apps", {$or:appIdArray})
@@ -424,7 +424,7 @@ router.post('/package/delete', checkTokenLegal, async (req, res, next) => {
   }
 })
 
-router.post('/package/obtain', checkTokenLegal, async (req, res, next) => {
+router.post('/package/obtain', checkTokenLegal, CheckSubPermissionLegal, async (req, res, next) => {
   try {
     const requiredCount = req.body.requiredCount
     const obtainedCount = req.body.obtainedCount

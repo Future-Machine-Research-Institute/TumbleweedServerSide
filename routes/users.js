@@ -6,7 +6,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, requestSucceeded, routeHost, tokenNotLegal, checkTokenLegal } = require("../routes/routes_config")
+const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, requestSucceeded, routeHost, tokenNotLegal, checkTokenLegal, CheckTopPermissionLegal } = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const { drawAvatar } = require("../util/tools/tools")
 const FileMangerInstance = require("../util/file/file")
@@ -129,7 +129,7 @@ router.post('/users/login', async (req, res, next) => {
 
 })
 
-router.post('/users/list', checkTokenLegal, async (req, res, next) => {
+router.post('/users/list', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
   try {
     const queryConditions = req.body.queryConditions
     const result = await DataBaseShareInstance.find("users", queryConditions, {_id: 0, password: 0, token: 0})
@@ -143,7 +143,7 @@ router.post('/users/list', checkTokenLegal, async (req, res, next) => {
   }
 })
 
-router.post('/users/add', checkTokenLegal, async (req, res, next) => {
+router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
 
   try {
     const name = req.body.newName
@@ -182,7 +182,7 @@ router.post('/users/add', checkTokenLegal, async (req, res, next) => {
   
 })
 
-router.post('/users/delete', checkTokenLegal, async (req, res, next) => {
+router.post('/users/delete', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
   try {
     const accountArray = req.body.accountArray
     const result = await DataBaseShareInstance.deleteMany("users", {$or:accountArray})
@@ -195,7 +195,7 @@ router.post('/users/delete', checkTokenLegal, async (req, res, next) => {
   }
 })
 
-router.post('/users/updatePermission', checkTokenLegal, async (req, res, next) => {
+router.post('/users/updatePermission', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
   try {
     const account = req.body.updateAccount
     const permission = req.body.updatePermission
