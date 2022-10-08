@@ -63,13 +63,13 @@ const CheckTopPermissionLegal = async (req, res, next) => {
                 message: accountNotExists
             })
         } else {
-            if (user.permission !== 0) {
+            if (user.permission === 0) {
+                next()
+            } else {
                 res.send({
                     ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
-            } else {
-                next()
             }
         }
     } catch (error) {
@@ -87,13 +87,13 @@ const CheckSubPermissionLegal = async (req, res, next) => {
                 message: accountNotExists
             })
         } else {
-            if (user.permission !== 0 || user.permission !== 1) {
+            if (user.permission === 0 || user.permission === 1) {
+                next()
+            } else {
                 res.send({
                     ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
-            } else {
-                next()
             }
         }
     } catch (error) {

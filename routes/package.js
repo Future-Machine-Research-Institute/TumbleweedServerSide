@@ -141,7 +141,7 @@ router.post('/package/upload', async (req, res, next) => {
             const staticResourceSuffix = '?timestamp=' + new Date().getTime()
 
             const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.${iconBuffer.type}${staticResourceSuffix}`
-            const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}${staticResourceSuffix}`
+            const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
             if(packageType === "ipa") {
               console.log("进行ios包特殊处理, 写入m.plist文件")
               const plistJson = {
@@ -174,7 +174,7 @@ router.post('/package/upload', async (req, res, next) => {
               await FileMangerInstance.writeStreamBufferAsync(plistPath, plistContent)
             }
   
-            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist${staticResourceSuffix}` : `https://${routeHost}/app/${appId}/${appId}p.apk${staticResourceSuffix}`
+            const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
             //写入数据库
             const result = await DataBaseShareInstance.insertOne("apps", {
               "appId": appId, 
@@ -315,7 +315,7 @@ router.post('/package/update', async (req, res, next) => {
               const staticResourceSuffix = '?timestamp=' + new Date().getTime()
 
               const appIconLink = `https://${routeHost}/app/${appId}/${appId}i.png${staticResourceSuffix}`
-              const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}${staticResourceSuffix}`
+              const packageLink = `https://${routeHost}/app/${appId}/${appId}p.${packageType}`
               if (packageType === "ipa") {
                 console.log("进行ios包特殊处理, 写入m.plist文件")
                 const plistJson = {
@@ -347,7 +347,7 @@ router.post('/package/update', async (req, res, next) => {
                 await FileMangerInstance.writeStreamBufferAsync(manifestPath, plistContent)
               }
 
-              const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist${staticResourceSuffix}` : `https://${routeHost}/app/${appId}/${appId}p.apk${staticResourceSuffix}`
+              const downloadLink = system === 0 ? `itms-services://?action=download-manifest&url=https://${routeHost}/app/${appId}/manifest.plist` : `https://${routeHost}/app/${appId}/${appId}p.apk`
 
               let descriptionLogs = app.descriptionLogs
               descriptionLogs.push({
