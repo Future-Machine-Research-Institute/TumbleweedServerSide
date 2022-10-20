@@ -31,7 +31,7 @@ const checkTokenLegal = async (req, res, next) => {
         const token = req.body.token
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
-            res.send({
+            return res.send({
                 ret: tokenNotLegalCode,
                 message: accountNotExists
             })
@@ -39,7 +39,7 @@ const checkTokenLegal = async (req, res, next) => {
             const dbToken = user.token
             const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
             if (!isLegal) {
-                res.send({
+                return res.send({
                     ret: tokenNotLegalCode,
                     message: tokenNotLegal
                 })
@@ -58,7 +58,7 @@ const CheckTopPermissionLegal = async (req, res, next) => {
         const account = req.body.account
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
-            res.send({
+            return res.send({
                 ret: userNotHavePermissionCode,
                 message: accountNotExists
             })
@@ -66,7 +66,7 @@ const CheckTopPermissionLegal = async (req, res, next) => {
             if (user.permission === 0) {
                 next()
             } else {
-                res.send({
+                return res.send({
                     ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
@@ -82,7 +82,7 @@ const CheckSubPermissionLegal = async (req, res, next) => {
         const account = req.body.account
         const user = await DataBaseShareInstance.findOne("users", { "account": account })
         if(user === null) {
-            res.send({
+            return res.send({
                 ret: userNotHavePermissionCode,
                 message: accountNotExists
             })
@@ -90,7 +90,7 @@ const CheckSubPermissionLegal = async (req, res, next) => {
             if (user.permission === 0 || user.permission === 1) {
                 next()
             } else {
-                res.send({
+                return res.send({
                     ret: userNotHavePermissionCode,
                     message: userNotHavePermission
                 })
@@ -114,6 +114,7 @@ module.exports = {
     packageFormatNotLegal,
     packageFileVerificationFailed,
     updatePackageNotExist,
+    userNotHavePermission,
     requestSucceeded,
     routeHost,
     checkTokenLegal,

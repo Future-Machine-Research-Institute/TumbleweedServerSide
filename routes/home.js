@@ -16,7 +16,7 @@ router.post('/home/obtain', checkTokenLegal, async (req, res, next) => {
         const queryConditions = req.body.queryConditions
         const result = await DataBaseShareInstance.findSkipAndLimit("apps", queryConditions, { _id: 0, uploadTime: 0, uploadAccount: 0 }, obtainedCount, requiredCount)
         const finished = result.length < requiredCount ? true : false
-        res.send({
+        return res.send({
             ret: successCode,
             message: requestSucceeded,
             items: result,

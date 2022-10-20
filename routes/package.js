@@ -7,7 +7,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, tokenNotLegalCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, requestSucceeded, routeHost, checkTokenLegal, CheckSubPermissionLegal} = require("../routes/routes_config")
+const { successCode, failureCode, tokenNotLegalCode, userNotHavePermissionCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, userNotHavePermission, requestSucceeded, routeHost, checkTokenLegal, CheckSubPermissionLegal} = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const FileMangerInstance = require("../util/file/file")
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
@@ -37,12 +37,28 @@ const isTokenLegal = async (account, token) => {
       const dbToken = user.token
       const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
       if (!isLegal) {
-        console.log("token不合法")
         return false
       } else {
         return true
       }
     }
+  } catch (error) {
+    return false
+  }
+}
+
+const isSubPermissionLegal = async (account) => {
+  try {
+      const user = await DataBaseShareInstance.findOne("users", { "account": account })
+      if(user === null) {
+        return false
+      } else {
+          if (user.permission === 0 || user.permission === 1) {
+            return true
+          } else {
+            return false
+          }
+      }
   } catch (error) {
     return false
   }
@@ -108,7 +124,7 @@ router.post('/package/upload', async (req, res, next) => {
         if(md5 !== (await FileMangerInstance.getFileMd5Async(package[0].path))) {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: packageFileVerificationFailed
           })
@@ -118,7 +134,7 @@ router.post('/package/upload', async (req, res, next) => {
         if(!CheckShareInstance.isPhoneNumber(account)) {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: dataNotLegal
           })
@@ -127,6 +143,13 @@ router.post('/package/upload', async (req, res, next) => {
         //只做了最基本的校验
         if(((packageType === "ipa" && system === 0) || (packageType === "apk" && system === 1)) && (progress === 0 || progress === 1)) {
           if(await isTokenLegal(account, token)) {
+
+            if(!(await isSubPermissionLegal(account))) {
+              return res.send({
+                ret: userNotHavePermissionCode,
+                message: userNotHavePermission
+              })
+            }
 
             appId = uuidCreate(16, 16)
 
@@ -191,7 +214,7 @@ router.post('/package/upload', async (req, res, next) => {
               "descriptionLogs": descriptionLogs
             })
   
-            res.send({
+            return res.send({
               ret: successCode,
               message: result
             })
@@ -199,7 +222,7 @@ router.post('/package/upload', async (req, res, next) => {
           } else {
             console.log("清除app包")
             await FileMangerInstance.unlinkAsync(package[0].path)
-            res.send({
+            return res.send({
               ret: tokenNotLegalCode,
               message: tokenNotLegal
             })
@@ -208,7 +231,7 @@ router.post('/package/upload', async (req, res, next) => {
         } else {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: packageFormatNotLegal
           })
@@ -274,7 +297,7 @@ router.post('/package/update', async (req, res, next) => {
         if(md5 !== (await FileMangerInstance.getFileMd5Async(package[0].path))) {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: packageFileVerificationFailed
           })
@@ -284,7 +307,7 @@ router.post('/package/update', async (req, res, next) => {
         if(!CheckShareInstance.isPhoneNumber(account) || !CheckShareInstance.isAppId(appId)) {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: dataNotLegal
           })
@@ -293,6 +316,14 @@ router.post('/package/update', async (req, res, next) => {
         if(((packageType === "ipa" && system === 0) || (packageType === "apk" && system === 1)) && (progress === 0 || progress === 1)) {
 
           if(await isTokenLegal(account, token)) {
+
+            if(!(await isSubPermissionLegal(account))) {
+              return res.send({
+                ret: userNotHavePermissionCode,
+                message: userNotHavePermission
+              })
+            }
+            
             const app = await DataBaseShareInstance.findOne("apps", { "appId": appId })
             const oldDirpath = path.join(originPath, appId)
             const packagePath = path.join(oldDirpath, `${appId}p.${packageType}`)
@@ -302,7 +333,7 @@ router.post('/package/update', async (req, res, next) => {
             if((app === null) || (app.system !== system) || !appFileExist) {
               console.log("清除app包")
               await FileMangerInstance.unlinkAsync(package[0].path)
-              res.send({
+              return res.send({
                 ret: failureCode,
                 message: updatePackageNotExist
               })
@@ -368,7 +399,7 @@ router.post('/package/update', async (req, res, next) => {
                 "descriptionLogs": descriptionLogs
               })
 
-              res.send({
+              return res.send({
                 ret: successCode,
                 message: result
               })
@@ -377,7 +408,7 @@ router.post('/package/update', async (req, res, next) => {
           } else {
             console.log("清除app包")
             await FileMangerInstance.unlinkAsync(package[0].path)
-            res.send({
+            return res.send({
               ret: tokenNotLegalCode,
               message: tokenNotLegal
             })
@@ -386,7 +417,7 @@ router.post('/package/update', async (req, res, next) => {
         } else {
           console.log("清除app包")
           await FileMangerInstance.unlinkAsync(package[0].path)
-          res.send({
+          return res.send({
             ret: failureCode,
             message: packageFormatNotLegal
           })
@@ -415,7 +446,7 @@ router.post('/package/delete', checkTokenLegal, CheckSubPermissionLegal, async (
     for(const object of appIdArray) {
       await FileMangerInstance.deleteDirectoryAsync(path.join(originPath, object.appId))
     }
-    res.send({
+    return res.send({
       ret: successCode,
       message: result,
     })
@@ -431,7 +462,7 @@ router.post('/package/obtain', checkTokenLegal, CheckSubPermissionLegal, async (
     const queryConditions = req.body.queryConditions
     const result = await DataBaseShareInstance.findSkipAndLimit("apps", queryConditions, {_id: 0, lastModifiedTime: 0, downloadLink: 0, packageLink: 0, descriptionLogs: 0}, obtainedCount, requiredCount)
     const finished = result.length < requiredCount ? true : false
-    res.send({
+    return res.send({
       ret: successCode,
       message: requestSucceeded,
       items: result,

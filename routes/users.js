@@ -21,7 +21,7 @@ router.post('/users/authorize', async (req, res, next) => {
       const token = req.body.token
       const user = await DataBaseShareInstance.findOne("users", { "account": account })
       if(user === null) {
-        res.send({
+        return res.send({
           ret: failureCode,
           message: accountNotExists
         })
@@ -29,12 +29,12 @@ router.post('/users/authorize', async (req, res, next) => {
         const dbToken = user.token
         const isLegal = await EDCryptionShareInstance.bcryptCompareAsync(token, dbToken)
         if (!isLegal) {
-          res.send({
+          return res.send({
             ret: failureCode,
             message: tokenNotLegal
           })
         } else {
-          res.send({
+          return res.send({
             ret: successCode,
             message: requestSucceeded
           })
@@ -56,7 +56,7 @@ router.post('/users/register', async (req, res, next) => {
     if(CheckShareInstance.isUserName(name) && CheckShareInstance.isPhoneNumber(account)) {
       const user = await DataBaseShareInstance.findOne("users", {"account": account})
       if(user !== null) {
-        res.send({
+        return res.send({
           ret: failureCode,
           message: accountAlreadyExists
         })
@@ -67,13 +67,13 @@ router.post('/users/register', async (req, res, next) => {
         await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
         const avatarPath = `https://${routeHost}/avatar/${account}.png`
         const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})
-        res.send({
+        return res.send({
           ret: successCode,
           message: result
         })
       }
     } else {
-      res.send({
+      return res.send({
         ret: failureCode,
         message: dataNotLegal
       })
@@ -92,7 +92,7 @@ router.post('/users/login', async (req, res, next) => {
     if(CheckShareInstance.isPhoneNumber(account)) {
       const user = await DataBaseShareInstance.findOne("users", {"account": account})
       if(user === null) {
-        res.send({
+        return res.send({
           ret: failureCode,
           message: accountNotExists
         })
@@ -105,20 +105,20 @@ router.post('/users/login', async (req, res, next) => {
           const sourceToken = await nanoid()
           const encryptionToken = await EDCryptionShareInstance.bcryptHashAsync(sourceToken, 10)
           const result = await DataBaseShareInstance.updateOne("users", {"account" : account}, {"token" : encryptionToken})
-          res.send({
+          return res.send({
             ret: successCode,
             token: sourceToken,
             message: result
           })
         } else {
-          res.send({
+          return res.send({
             ret: failureCode,
             message: passwordIncorrect
           })
         }
       }
     } else {
-      res.send({
+      return res.send({
         ret: failureCode,
         message: dataNotLegal
       })
@@ -133,7 +133,7 @@ router.post('/users/list', checkTokenLegal, CheckTopPermissionLegal, async (req,
   try {
     const queryConditions = req.body.queryConditions
     const result = await DataBaseShareInstance.find("users", queryConditions, {_id: 0, password: 0, token: 0})
-    res.send({
+    return res.send({
       ret: successCode,
       list: result,
       message: requestSucceeded
@@ -154,7 +154,7 @@ router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, 
     if(CheckShareInstance.isUserName(name) && CheckShareInstance.isPhoneNumber(account)) {
       const user = await DataBaseShareInstance.findOne("users", {"account": account})
       if(user !== null) {
-        res.send({
+        return res.send({
           ret: failureCode,
           message: accountAlreadyExists
         })
@@ -165,13 +165,13 @@ router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, 
         await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
         const avatarPath = `https://${routeHost}/avatar/${account}.png`
         const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})
-        res.send({
+        return res.send({
           ret: successCode,
           message: result
         })
       }
     } else {
-      res.send({
+      return res.send({
         ret: failureCode,
         message: dataNotLegal
       })
@@ -186,7 +186,7 @@ router.post('/users/delete', checkTokenLegal, CheckTopPermissionLegal, async (re
   try {
     const accountArray = req.body.accountArray
     const result = await DataBaseShareInstance.deleteMany("users", {$or:accountArray})
-    res.send({
+    return res.send({
       ret: successCode,
       message: result,
     })
@@ -200,7 +200,7 @@ router.post('/users/updatePermission', checkTokenLegal, CheckTopPermissionLegal,
     const account = req.body.updateAccount
     const permission = req.body.updatePermission
     const result = await DataBaseShareInstance.updateOne("users", {"account": account}, {"permission": permission})
-    res.send({
+    return res.send({
       ret: successCode,
       message: result,
     })
@@ -213,7 +213,7 @@ router.post('/users/information', checkTokenLegal, async (req, res, next) => {
   try {
     const account = req.body.account
     const result = await DataBaseShareInstance.find("users", {"account": account}, {_id: 0, password: 0, token: 0})
-    res.send({
+    return res.send({
       ret: successCode,
       information: result[0],
       message: requestSucceeded
@@ -227,7 +227,7 @@ router.post('/users/information', checkTokenLegal, async (req, res, next) => {
 router.post('/users/test', checkTokenLegal, async (req, res, next) => {
   try {
     const account = req.body.account
-    res.send({
+    return res.send({
       ret: successCode,
       params: account,
       message: requestSucceeded
@@ -241,14 +241,14 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.find("users", {})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
 
 //   DataBaseShareInstance.find("users", {}, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
@@ -256,14 +256,14 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.updateOne("users", {"name" : "xj"}, {"password" : "123"})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
 
 //   DataBaseShareInstance.updateOne("users", {"name" : "xj"}, {"password" : "123456"}, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
@@ -271,14 +271,14 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.updateMany("users", {"name" : "xj"}, {"password" : "123"})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
 
 //   DataBaseShareInstance.updateMany("users", {"name" : "xj"}, {"password" : "123456"}, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
@@ -286,7 +286,7 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.insertOne("users", {"name" : "xj", "account" : "17826804289", "password" : "123456"})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
@@ -300,7 +300,7 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   DataBaseShareInstance.insertMany("users", insertArray, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
@@ -308,14 +308,14 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.deleteOne("users", {"name" : "xj"})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
 
 //   DataBaseShareInstance.deleteOne("users", {"name" : "xj"}, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
@@ -323,14 +323,14 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
 
 //   try {
 //     const result = await DataBaseShareInstance.deleteMany("users", {"name" : "xj"})
-//     res.send(JSON.stringify(result))
+//     return res.send(JSON.stringify(result))
 //   } catch (error) {
 //     next(error)
 //   }
 
 //   DataBaseShareInstance.deleteMany("users", {"name" : "xj"}, (error, result) => {
 //     if(!error) {
-//       res.send(JSON.stringify(result))
+//       return res.send(JSON.stringify(result))
 //     } else {
 //       next(error)
 //     }
