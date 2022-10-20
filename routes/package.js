@@ -7,7 +7,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, tokenNotLegalCode, userNotHavePermissionCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, tokenNotLegal, packageFormatNotLegal, packageFileVerificationFailed, updatePackageNotExist, userNotHavePermission, requestSucceeded, routeHost, checkTokenLegal, CheckSubPermissionLegal} = require("../routes/routes_config")
+const { successCode, failureCode, tokenNotLegalCode, userNotHavePermissionCode, responseMessage, routeHost, checkTokenLegal, checkSubPermissionLegal, setResponseLanguage} = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const FileMangerInstance = require("../util/file/file")
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
@@ -64,7 +64,7 @@ const isSubPermissionLegal = async (account) => {
   }
 }
 
-router.post('/package/upload', async (req, res, next) => {
+router.post('/package/upload', setResponseLanguage, async (req, res, next) => {
 
   //formData必须每次新建
   const formData = new multiparty.Form();
@@ -126,7 +126,7 @@ router.post('/package/upload', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: packageFileVerificationFailed
+            message: responseMessage[req.responseLanguage].packageFileVerificationFailed
           })
         }
 
@@ -136,7 +136,7 @@ router.post('/package/upload', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: dataNotLegal
+            message: responseMessage[req.responseLanguage].dataNotLegal
           })
         }
 
@@ -147,7 +147,7 @@ router.post('/package/upload', async (req, res, next) => {
             if(!(await isSubPermissionLegal(account))) {
               return res.send({
                 ret: userNotHavePermissionCode,
-                message: userNotHavePermission
+                message: responseMessage[req.responseLanguage].userNotHavePermission
               })
             }
 
@@ -224,7 +224,7 @@ router.post('/package/upload', async (req, res, next) => {
             await FileMangerInstance.unlinkAsync(package[0].path)
             return res.send({
               ret: tokenNotLegalCode,
-              message: tokenNotLegal
+              message: responseMessage[req.responseLanguage].tokenNotLegal
             })
           }
           
@@ -233,7 +233,7 @@ router.post('/package/upload', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: packageFormatNotLegal
+            message: responseMessage[req.responseLanguage].packageFormatNotLegal
           })
         }
       } catch (error) {
@@ -253,7 +253,7 @@ router.post('/package/upload', async (req, res, next) => {
 })
 
 //先更新文件再更新数据库
-router.post('/package/update', async (req, res, next) => {
+router.post('/package/update', setResponseLanguage, async (req, res, next) => {
 
   //formData必须每次新建
   const formData = new multiparty.Form();
@@ -299,7 +299,7 @@ router.post('/package/update', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: packageFileVerificationFailed
+            message: responseMessage[req.responseLanguage].packageFileVerificationFailed
           })
         }
 
@@ -309,7 +309,7 @@ router.post('/package/update', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: dataNotLegal
+            message: responseMessage[req.responseLanguage].dataNotLegal
           })
         }
 
@@ -320,7 +320,7 @@ router.post('/package/update', async (req, res, next) => {
             if(!(await isSubPermissionLegal(account))) {
               return res.send({
                 ret: userNotHavePermissionCode,
-                message: userNotHavePermission
+                message: responseMessage[req.responseLanguage].userNotHavePermission
               })
             }
             
@@ -335,7 +335,7 @@ router.post('/package/update', async (req, res, next) => {
               await FileMangerInstance.unlinkAsync(package[0].path)
               return res.send({
                 ret: failureCode,
-                message: updatePackageNotExist
+                message: responseMessage[req.responseLanguage].updatePackageNotExist
               })
             } else {
               const tempPackagePath = package[0].path
@@ -410,7 +410,7 @@ router.post('/package/update', async (req, res, next) => {
             await FileMangerInstance.unlinkAsync(package[0].path)
             return res.send({
               ret: tokenNotLegalCode,
-              message: tokenNotLegal
+              message: responseMessage[req.responseLanguage].tokenNotLegal
             })
           }
 
@@ -419,7 +419,7 @@ router.post('/package/update', async (req, res, next) => {
           await FileMangerInstance.unlinkAsync(package[0].path)
           return res.send({
             ret: failureCode,
-            message: packageFormatNotLegal
+            message: responseMessage[req.responseLanguage].packageFormatNotLegal
           })
         }
       
@@ -439,7 +439,7 @@ router.post('/package/update', async (req, res, next) => {
 
 })
 
-router.post('/package/delete', checkTokenLegal, CheckSubPermissionLegal, async (req, res, next) => {
+router.post('/package/delete', setResponseLanguage, checkTokenLegal, checkSubPermissionLegal, async (req, res, next) => {
   try {
     const appIdArray = req.body.appIdArray
     const result = await DataBaseShareInstance.deleteMany("apps", {$or:appIdArray})
@@ -455,7 +455,7 @@ router.post('/package/delete', checkTokenLegal, CheckSubPermissionLegal, async (
   }
 })
 
-router.post('/package/obtain', checkTokenLegal, CheckSubPermissionLegal, async (req, res, next) => {
+router.post('/package/obtain', setResponseLanguage, checkTokenLegal, checkSubPermissionLegal, async (req, res, next) => {
   try {
     const requiredCount = req.body.requiredCount
     const obtainedCount = req.body.obtainedCount
@@ -464,7 +464,7 @@ router.post('/package/obtain', checkTokenLegal, CheckSubPermissionLegal, async (
     const finished = result.length < requiredCount ? true : false
     return res.send({
       ret: successCode,
-      message: requestSucceeded,
+      message: responseMessage[req.responseLanguage].requestSucceeded,
       items: result,
       finished: finished
     })

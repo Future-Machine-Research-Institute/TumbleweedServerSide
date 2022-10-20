@@ -6,10 +6,9 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, requestSucceeded, routeHost, tokenNotLegal, checkTokenLegal } = require("../routes/routes_config")
-const CheckShareInstance = require("../util/check/check")
+const { successCode, checkTokenLegal, setResponseLanguage, responseMessage } = require("../routes/routes_config")
 
-router.post('/home/obtain', checkTokenLegal, async (req, res, next) => {
+router.post('/home/obtain', setResponseLanguage, checkTokenLegal, async (req, res, next) => {
     try {
         const requiredCount = req.body.requiredCount
         const obtainedCount = req.body.obtainedCount
@@ -18,7 +17,7 @@ router.post('/home/obtain', checkTokenLegal, async (req, res, next) => {
         const finished = result.length < requiredCount ? true : false
         return res.send({
             ret: successCode,
-            message: requestSucceeded,
+            message: responseMessage[req.responseLanguage].requestSucceeded,
             items: result,
             finished: finished
         })

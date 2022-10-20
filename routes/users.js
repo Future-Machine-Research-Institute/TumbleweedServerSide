@@ -6,7 +6,7 @@ const DataBaseShareInstance = require("../util/db/db")
 DataBaseShareConfig.dbConnectUrl = "mongodb://localhost:27017"
 DataBaseShareConfig.dbConnectName = "tumbleweed"
 
-const { successCode, failureCode, dataNotLegal, accountAlreadyExists, accountNotExists, passwordIncorrect, requestSucceeded, routeHost, tokenNotLegal, checkTokenLegal, CheckTopPermissionLegal } = require("../routes/routes_config")
+const { successCode, failureCode, responseMessage, routeHost, checkTokenLegal, checkTopPermissionLegal, setResponseLanguage } = require("../routes/routes_config")
 const CheckShareInstance = require("../util/check/check")
 const { drawAvatar } = require("../util/tools/tools")
 const FileMangerInstance = require("../util/file/file")
@@ -15,7 +15,7 @@ const path = require('path')
 
 /* GET users listing. */
 
-router.post('/users/authorize', async (req, res, next) => {
+router.post('/users/authorize', setResponseLanguage, async (req, res, next) => {
   try {
       const account = req.body.account
       const token = req.body.token
@@ -23,7 +23,7 @@ router.post('/users/authorize', async (req, res, next) => {
       if(user === null) {
         return res.send({
           ret: failureCode,
-          message: accountNotExists
+          message: responseMessage[req.responseLanguage].accountNotExists
         })
       } else {
         const dbToken = user.token
@@ -31,12 +31,12 @@ router.post('/users/authorize', async (req, res, next) => {
         if (!isLegal) {
           return res.send({
             ret: failureCode,
-            message: tokenNotLegal
+            message: responseMessage[req.responseLanguage].tokenNotLegal
           })
         } else {
           return res.send({
             ret: successCode,
-            message: requestSucceeded
+            message: responseMessage[req.responseLanguage].requestSucceeded
           })
         }
       }
@@ -45,7 +45,7 @@ router.post('/users/authorize', async (req, res, next) => {
   }
 })
 
-router.post('/users/register', async (req, res, next) => {
+router.post('/users/register', setResponseLanguage, async (req, res, next) => {
 
   try {
     const name = req.body.name
@@ -58,7 +58,7 @@ router.post('/users/register', async (req, res, next) => {
       if(user !== null) {
         return res.send({
           ret: failureCode,
-          message: accountAlreadyExists
+          message: responseMessage[req.responseLanguage].accountAlreadyExists
         })
       } else {
         const avatarBuffer = drawAvatar(40, 40, shortName)
@@ -75,7 +75,7 @@ router.post('/users/register', async (req, res, next) => {
     } else {
       return res.send({
         ret: failureCode,
-        message: dataNotLegal
+        message: responseMessage[req.responseLanguage].dataNotLegal
       })
     }
   } catch (error) {
@@ -84,7 +84,7 @@ router.post('/users/register', async (req, res, next) => {
   
 })
 
-router.post('/users/login', async (req, res, next) => {
+router.post('/users/login', setResponseLanguage, async (req, res, next) => {
 
   try {
     const account = req.body.account
@@ -94,7 +94,7 @@ router.post('/users/login', async (req, res, next) => {
       if(user === null) {
         return res.send({
           ret: failureCode,
-          message: accountNotExists
+          message: responseMessage[req.responseLanguage].accountNotExists
         })
       } else {
         const dbPassword = user.password
@@ -113,14 +113,14 @@ router.post('/users/login', async (req, res, next) => {
         } else {
           return res.send({
             ret: failureCode,
-            message: passwordIncorrect
+            message: responseMessage[req.responseLanguage].passwordIncorrect
           })
         }
       }
     } else {
       return res.send({
         ret: failureCode,
-        message: dataNotLegal
+        message: responseMessage[req.responseLanguage].dataNotLegal
       })
     }
   } catch (error) {
@@ -129,21 +129,21 @@ router.post('/users/login', async (req, res, next) => {
 
 })
 
-router.post('/users/list', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
+router.post('/users/list', setResponseLanguage, checkTokenLegal, checkTopPermissionLegal, async (req, res, next) => {
   try {
     const queryConditions = req.body.queryConditions
     const result = await DataBaseShareInstance.find("users", queryConditions, {_id: 0, password: 0, token: 0})
     return res.send({
       ret: successCode,
       list: result,
-      message: requestSucceeded
+      message: responseMessage[req.responseLanguage].requestSucceeded
     })
   } catch (error) {
     next(error)
   }
 })
 
-router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
+router.post('/users/add', setResponseLanguage, checkTokenLegal, checkTopPermissionLegal, async (req, res, next) => {
 
   try {
     const name = req.body.newName
@@ -156,7 +156,7 @@ router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, 
       if(user !== null) {
         return res.send({
           ret: failureCode,
-          message: accountAlreadyExists
+          message: responseMessage[req.responseLanguage].accountAlreadyExists
         })
       } else {
         const avatarBuffer = drawAvatar(40, 40, shortName)
@@ -173,7 +173,7 @@ router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, 
     } else {
       return res.send({
         ret: failureCode,
-        message: dataNotLegal
+        message: responseMessage[req.responseLanguage].dataNotLegal
       })
     }
   } catch (error) {
@@ -182,7 +182,7 @@ router.post('/users/add', checkTokenLegal, CheckTopPermissionLegal, async (req, 
   
 })
 
-router.post('/users/delete', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
+router.post('/users/delete', setResponseLanguage, checkTokenLegal, checkTopPermissionLegal, async (req, res, next) => {
   try {
     const accountArray = req.body.accountArray
     const result = await DataBaseShareInstance.deleteMany("users", {$or:accountArray})
@@ -195,7 +195,7 @@ router.post('/users/delete', checkTokenLegal, CheckTopPermissionLegal, async (re
   }
 })
 
-router.post('/users/updatePermission', checkTokenLegal, CheckTopPermissionLegal, async (req, res, next) => {
+router.post('/users/updatePermission', setResponseLanguage, checkTokenLegal, checkTopPermissionLegal, async (req, res, next) => {
   try {
     const account = req.body.updateAccount
     const permission = req.body.updatePermission
@@ -209,14 +209,14 @@ router.post('/users/updatePermission', checkTokenLegal, CheckTopPermissionLegal,
   }
 })
 
-router.post('/users/information', checkTokenLegal, async (req, res, next) => {
+router.post('/users/information', setResponseLanguage, checkTokenLegal, async (req, res, next) => {
   try {
     const account = req.body.account
     const result = await DataBaseShareInstance.find("users", {"account": account}, {_id: 0, password: 0, token: 0})
     return res.send({
       ret: successCode,
       information: result[0],
-      message: requestSucceeded
+      message: responseMessage[req.responseLanguage].requestSucceeded
     })
   } catch (error) {
     next(error)
@@ -230,7 +230,7 @@ router.post('/users/test', checkTokenLegal, async (req, res, next) => {
     return res.send({
       ret: successCode,
       params: account,
-      message: requestSucceeded
+      message: responseMessage[req.responseLanguage].requestSucceeded
     })
   } catch (error) {
     next(error)
