@@ -10,6 +10,7 @@ const { successCode, failureCode, responseMessage, routeHost, checkTokenLegal, c
 const CheckShareInstance = require("../util/check/check")
 const { drawAvatar } = require("../util/tools/tools")
 const FileMangerInstance = require("../util/file/file")
+const fs = require('fs')
 const EDCryptionShareInstance = require("../node_modules/@future-machine-research-institute/jsbasetools/edcryption")
 const path = require('path')
 
@@ -64,6 +65,9 @@ router.post('/users/register', setResponseLanguage, async (req, res, next) => {
         const avatarBuffer = drawAvatar(40, 40, shortName)
         const encryptionPassword = await EDCryptionShareInstance.bcryptHashAsync(password, 10)
         // const avatarPath = await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        if(!fs.existsSync(path.resolve(__dirname, '..') + "\\resource\\avatar")) {
+          await FileMangerInstance.mkdirAsync(path.resolve(__dirname, '..') + "\\resource\\avatar")
+        }
         await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
         const avatarPath = `https://${routeHost}/avatar/${account}.png`
         const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})
@@ -162,6 +166,9 @@ router.post('/users/add', setResponseLanguage, checkTokenLegal, checkTopPermissi
         const avatarBuffer = drawAvatar(40, 40, shortName)
         const encryptionPassword = await EDCryptionShareInstance.bcryptHashAsync(password, 10)
         // const avatarPath = await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
+        if(!fs.existsSync(path.resolve(__dirname, '..') + "\\resource\\avatar")) {
+          await FileMangerInstance.mkdirAsync(path.resolve(__dirname, '..') + "\\resource\\avatar")
+        }
         await FileMangerInstance.writeStreamBufferAsync(path.resolve(__dirname, '..') + `\\resource\\avatar\\${account}.png`, avatarBuffer)
         const avatarPath = `https://${routeHost}/avatar/${account}.png`
         const result = await DataBaseShareInstance.insertOne("users", {"name": name, "account": account, "password": encryptionPassword, "avatar": avatarPath, "permission": permission, "token": null})

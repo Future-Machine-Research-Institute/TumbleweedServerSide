@@ -26,6 +26,7 @@ const { drawAvatar } = require("../util/tools/tools")
 // const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
 
 const originPath = path.resolve(__dirname, '..') + "\\resource\\app"
+const originPathTemp = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
 
 //Just use in package.js for special method
 const isTokenLegal = async (account, token) => {
@@ -66,9 +67,21 @@ const isSubPermissionLegal = async (account) => {
 
 router.post('/package/upload', setResponseLanguage, async (req, res, next) => {
 
+  try {
+    if (!fs.existsSync(originPath)) {
+      await FileMangerInstance.mkdirAsync(originPath)
+    }
+  
+    if (!fs.existsSync(originPathTemp)) {
+      await FileMangerInstance.mkdirAsync(originPathTemp)
+    }
+  } catch (error) {
+    next(error)
+  }
+
   //formData必须每次新建
   const formData = new multiparty.Form();
-  formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
+  formData.uploadDir = originPathTemp
   formData.parse(req, async (err, fields, files) => {
     
     // console.log(err);
@@ -255,9 +268,21 @@ router.post('/package/upload', setResponseLanguage, async (req, res, next) => {
 //先更新文件再更新数据库
 router.post('/package/update', setResponseLanguage, async (req, res, next) => {
 
+  try {
+    if (!fs.existsSync(originPath)) {
+      await FileMangerInstance.mkdirAsync(originPath)
+    }
+  
+    if (!fs.existsSync(originPathTemp)) {
+      await FileMangerInstance.mkdirAsync(originPathTemp)
+    }
+  } catch (error) {
+    next(error)
+  }
+
   //formData必须每次新建
   const formData = new multiparty.Form();
-  formData.uploadDir = path.resolve(__dirname, '..') + "\\resource\\app\\temp"
+  formData.uploadDir = originPathTemp
   formData.parse(req, async (err, fields, files) => {
 
     if(err) {
