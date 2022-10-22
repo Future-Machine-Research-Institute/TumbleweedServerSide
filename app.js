@@ -2,15 +2,17 @@ const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
+const history = require('connect-history-api-fallback')
 
 const { successCode, failureCode, dataNotLegal, requestSucceeded } = require("./routes/routes_config")
 
-const indexRouter = require('./routes/index')
+// const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
 const homeRouter = require('./routes/home')
 const packageRouter = require('./routes/package')
 
 const app = express()
+app.use(history())
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -61,7 +63,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use(indexRouter)
+// app.use(indexRouter)
 app.use(usersRouter)
 app.use(homeRouter)
 app.use(packageRouter)
